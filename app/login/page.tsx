@@ -67,11 +67,11 @@ function LoginForm() {
 
       <main className="flex-1 flex items-center justify-center p-4">
         <div className="w-full max-w-md">
-          <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-6 shadow-sm">
-            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100 mb-1">
+          <div className="rounded-2xl border border-border bg-card p-6 shadow-sm">
+            <h1 className="text-2xl font-bold text-card-foreground mb-1">
               NutriScan
             </h1>
-            <p className="text-stone-600 dark:text-stone-400 text-sm mb-6">
+            <p className="text-muted-foreground text-sm mb-6">
               {mode === "signin"
                 ? "Sign in to scan food and save your history."
                 : "Create an account to get started."}
@@ -81,7 +81,7 @@ function LoginForm() {
               <div>
                 <label
                   htmlFor="email"
-                  className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
                   Email
                 </label>
@@ -92,14 +92,14 @@ function LoginForm() {
                   onChange={(e) => setEmail(e.target.value)}
                   required
                   autoComplete="email"
-                  className="w-full px-4 py-2.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   placeholder="you@example.com"
                 />
               </div>
               <div>
                 <label
                   htmlFor="password"
-                  className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1"
+                  className="block text-sm font-medium text-foreground mb-1"
                 >
                   Password
                 </label>
@@ -111,11 +111,11 @@ function LoginForm() {
                   required
                   minLength={6}
                   autoComplete={mode === "signin" ? "current-password" : "new-password"}
-                  className="w-full px-4 py-2.5 rounded-lg border border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-800 text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 rounded-lg border border-input bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent"
                   placeholder="••••••••"
                 />
                 {mode === "signup" && (
-                  <p className="mt-1 text-xs text-stone-500 dark:text-stone-400">
+                  <p className="mt-1 text-xs text-muted-foreground">
                     At least 6 characters
                   </p>
                 )}
@@ -142,7 +142,7 @@ function LoginForm() {
               </button>
             </form>
 
-            <p className="mt-4 text-center text-sm text-stone-600 dark:text-stone-400">
+            <p className="mt-4 text-center text-sm text-muted-foreground">
               {mode === "signin" ? (
                 <>
                   Don&apos;t have an account?{" "}
@@ -180,7 +180,7 @@ export default function LoginPage() {
       fallback={
         <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
           <Spinner />
-          <p className="text-sm text-stone-500 dark:text-stone-400">
+          <p className="text-sm text-muted-foreground">
             Loading…
           </p>
         </div>

@@ -55,8 +55,13 @@ const FLAG_COLORS = {
     "bg-yellow-500/15 text-yellow-800 dark:text-yellow-200 border-yellow-500/40",
 } as const;
 
+const SERVING_STEPS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
+const MIN_MULTIPLIER = 0.5;
+const MAX_MULTIPLIER = 5;
+
 export default function ScanPage() {
   const [state, setState] = useState<ScanState>({ status: "idle" });
+  const [servingMultiplier, setServingMultiplier] = useState(1);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -90,6 +95,7 @@ export default function ScanPage() {
         result: data,
         previewUrl,
       });
+      setServingMultiplier(1);
     } catch (err) {
       setState({
         status: "error",
@@ -107,6 +113,7 @@ export default function ScanPage() {
       URL.revokeObjectURL(state.previewUrl);
     }
     setState({ status: "idle" });
+    setServingMultiplier(1);
   }
 
   const isLowConfidence =
@@ -114,15 +121,15 @@ export default function ScanPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium"
           >
             ← Back
           </Link>
-          <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <h1 className="text-lg font-semibold text-foreground">
             NutriScan
           </h1>
           <div className="flex items-center gap-2">
@@ -139,7 +146,7 @@ export default function ScanPage() {
 
       <main className="max-w-lg mx-auto px-4 py-8 flex flex-col gap-6">
         {/* Upload area */}
-        <section className="rounded-2xl border-2 border-dashed border-stone-300 dark:border-stone-700 bg-white dark:bg-stone-900 p-8 text-center transition-colors hover:border-stone-400 dark:hover:border-stone-600">
+        <section className="rounded-2xl border-2 border-dashed border-input bg-card p-8 text-center transition-colors hover:border-primary/50">
           <input
             ref={fileInputRef}
             type="file"
@@ -158,10 +165,10 @@ export default function ScanPage() {
             {state.status === "loading" ? (
               <div className="flex flex-col items-center gap-4 py-8">
                 <Spinner className="w-12 h-12" />
-                <p className="text-stone-600 dark:text-stone-400 font-medium">
+                <p className="text-muted-foreground font-medium">
                   Analyzing…
                 </p>
-                <p className="text-sm text-stone-500 dark:text-stone-500">
+                <p className="text-sm text-muted-foreground">
                   Identifying food and fetching nutrition
                 </p>
               </div>
@@ -188,10 +195,10 @@ export default function ScanPage() {
                     />
                   </svg>
                 </div>
-                <p className="text-stone-700 dark:text-stone-300 font-semibold">
+                <p className="text-foreground font-semibold">
                   Upload or take a photo
                 </p>
-                <p className="text-sm text-stone-500 dark:text-stone-500">
+                <p className="text-sm text-muted-foreground">
                   Point your camera at a single food item
                 </p>
               </div>
@@ -253,9 +260,9 @@ export default function ScanPage() {
             )}
 
             {/* Preview + label */}
-            <div className="rounded-2xl overflow-hidden bg-white dark:bg-stone-900 border border-stone-200 dark:border-stone-800">
+            <div className="rounded-2xl overflow-hidden bg-card border border-border">
               {state.previewUrl && (
-                <div className="aspect-video bg-stone-100 dark:bg-stone-800 relative">
+                <div className="aspect-video bg-muted relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={state.previewUrl}
@@ -265,10 +272,10 @@ export default function ScanPage() {
                 </div>
               )}
               <div className="p-4">
-                <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 capitalize">
+                <h2 className="text-xl font-bold text-card-foreground capitalize">
                   {state.result.label}
                 </h2>
-                <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+                <p className="text-sm text-muted-foreground mt-1">
                   Confidence: {Math.round(state.result.confidence * 100)}%
                 </p>
               </div>
@@ -277,7 +284,7 @@ export default function ScanPage() {
             {/* Flag badges */}
             {state.result.flags.length > 0 && (
               <div>
-                <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">
+                <h3 className="text-sm font-semibold text-foreground mb-2">
                   Health & safety
                 </h3>
                 <div className="flex flex-wrap gap-2">
@@ -295,81 +302,106 @@ export default function ScanPage() {
             )}
 
             {/* Nutrition card */}
-            {state.result.nutrition && (
-              <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
-                <div className="px-4 py-3 bg-stone-50 dark:bg-stone-800/50 border-b border-stone-200 dark:border-stone-800">
-                  <h3 className="font-semibold text-stone-900 dark:text-stone-100">
-                    Nutrition
-                  </h3>
-                  <p className="text-xs text-stone-500 dark:text-stone-400 mt-0.5">
-                    Per {state.result.nutrition.serving_label}
-                  </p>
-                </div>
-                <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {Math.round(state.result.nutrition.calories)}
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Calories
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {state.result.nutrition.protein_g.toFixed(1)}g
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Protein
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {state.result.nutrition.fat_g.toFixed(1)}g
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Fat
-                    </p>
-                    {state.result.nutrition.saturated_fat_g > 0 && (
-                      <p className="text-xs text-stone-400 dark:text-stone-500">
-                        sat {state.result.nutrition.saturated_fat_g.toFixed(1)}g
+            {state.result.nutrition && (() => {
+              const n = state.result.nutrition;
+              const mult = servingMultiplier;
+              const scaledGrams = Math.round(n.serving_grams * mult);
+              const idx = SERVING_STEPS.indexOf(mult);
+              const canDecrease = idx > 0;
+              const canIncrease = idx < SERVING_STEPS.length - 1;
+              return (
+                <div className="rounded-2xl border border-border bg-card overflow-hidden">
+                  <div className="px-4 py-3 bg-muted/50 border-b border-border">
+                    <h3 className="font-semibold text-card-foreground">
+                      Nutrition
+                    </h3>
+                    <div className="mt-2 flex items-center justify-between gap-4">
+                      <p className="text-xs text-muted-foreground">
+                        {mult}x serving · {scaledGrams}g
                       </p>
-                    )}
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setServingMultiplier(SERVING_STEPS[idx - 1] ?? mult)
+                          }
+                          disabled={!canDecrease}
+                          aria-label="Decrease serving size"
+                          className="size-8 rounded-lg border border-input bg-background text-foreground flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent transition-colors"
+                        >
+                          <span className="text-lg leading-none">−</span>
+                        </button>
+                        <span className="min-w-[4rem] text-center text-sm font-medium text-foreground">
+                          {mult}x
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setServingMultiplier(SERVING_STEPS[idx + 1] ?? mult)
+                          }
+                          disabled={!canIncrease}
+                          aria-label="Increase serving size"
+                          className="size-8 rounded-lg border border-input bg-background text-foreground flex items-center justify-center disabled:opacity-40 disabled:cursor-not-allowed hover:bg-accent transition-colors"
+                        >
+                          <span className="text-lg leading-none">+</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
-                      {state.result.nutrition.carbs_g.toFixed(1)}g
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Carbs
-                    </p>
-                    {state.result.nutrition.sugar_g > 0 && (
-                      <p className="text-xs text-stone-400 dark:text-stone-500">
-                        sugar {state.result.nutrition.sugar_g.toFixed(1)}g
+                  <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-2xl font-bold text-card-foreground">
+                        {Math.round(n.calories * mult)}
                       </p>
-                    )}
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
-                      {Math.round(state.result.nutrition.sodium_mg)}mg
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Sodium
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
-                      {state.result.nutrition.fiber_g.toFixed(1)}g
-                    </p>
-                    <p className="text-xs text-stone-500 dark:text-stone-400">
-                      Fiber
-                    </p>
+                      <p className="text-xs text-muted-foreground">Calories</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-card-foreground">
+                        {(n.protein_g * mult).toFixed(1)}g
+                      </p>
+                      <p className="text-xs text-muted-foreground">Protein</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-card-foreground">
+                        {(n.fat_g * mult).toFixed(1)}g
+                      </p>
+                      <p className="text-xs text-muted-foreground">Fat</p>
+                      {n.saturated_fat_g > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          sat {(n.saturated_fat_g * mult).toFixed(1)}g
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-2xl font-bold text-card-foreground">
+                        {(n.carbs_g * mult).toFixed(1)}g
+                      </p>
+                      <p className="text-xs text-muted-foreground">Carbs</p>
+                      {n.sugar_g > 0 && (
+                        <p className="text-xs text-muted-foreground">
+                          sugar {(n.sugar_g * mult).toFixed(1)}g
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-card-foreground">
+                        {Math.round(n.sodium_mg * mult)}mg
+                      </p>
+                      <p className="text-xs text-muted-foreground">Sodium</p>
+                    </div>
+                    <div>
+                      <p className="text-lg font-bold text-card-foreground">
+                        {(n.fiber_g * mult).toFixed(1)}g
+                      </p>
+                      <p className="text-xs text-muted-foreground">Fiber</p>
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             {!state.result.nutrition && (
-              <p className="text-sm text-stone-500 dark:text-stone-400 py-2">
+              <p className="text-sm text-muted-foreground py-2">
                 Nutrition data unavailable for this food.
               </p>
             )}
@@ -377,7 +409,7 @@ export default function ScanPage() {
             <button
               type="button"
               onClick={handleReset}
-              className="w-full py-3 rounded-xl border border-stone-300 dark:border-stone-700 text-stone-700 dark:text-stone-300 font-medium hover:bg-stone-100 dark:hover:bg-stone-800 transition-colors"
+              className="w-full py-3 rounded-xl border border-input text-foreground font-medium hover:bg-accent transition-colors"
             >
               Scan another
             </button>

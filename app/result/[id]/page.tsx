@@ -67,7 +67,7 @@ export default function ResultPage() {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
         <Spinner />
-        <p className="text-sm text-stone-500 dark:text-stone-400">
+        <p className="text-sm text-muted-foreground">
           Loading scan…
         </p>
       </div>
@@ -77,9 +77,9 @@ export default function ResultPage() {
   if (error || !scan) {
     return (
       <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-        <div className="w-16 h-16 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <svg
-            className="w-8 h-8 text-stone-400 dark:text-stone-500"
+            className="w-8 h-8 text-muted-foreground"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -92,7 +92,7 @@ export default function ResultPage() {
             />
           </svg>
         </div>
-        <p className="text-stone-600 dark:text-stone-400 text-center mb-6">
+        <p className="text-muted-foreground text-center mb-6">
           {error ?? "Scan not found"}
         </p>
         <Link
@@ -114,11 +114,11 @@ export default function ResultPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/history"
-            className="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium"
           >
             ← History
           </Link>
@@ -130,18 +130,18 @@ export default function ResultPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4">
-          <h2 className="text-xl font-bold text-stone-900 dark:text-stone-100 capitalize">
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <h2 className="text-xl font-bold text-card-foreground capitalize">
             {scan.food_label}
           </h2>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+          <p className="text-sm text-muted-foreground mt-1">
             {date}
           </p>
         </div>
 
         {scan.flags && scan.flags.length > 0 && (
           <div>
-            <h3 className="text-sm font-semibold text-stone-700 dark:text-stone-300 mb-2">
+            <h3 className="text-sm font-semibold text-foreground mb-2">
               Health & safety
             </h3>
             <div className="flex flex-wrap gap-2">
@@ -160,53 +160,53 @@ export default function ResultPage() {
           </div>
         )}
 
-        <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 overflow-hidden">
-          <div className="px-4 py-3 bg-stone-50 dark:bg-stone-800/50 border-b border-stone-200 dark:border-stone-800">
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100">
+        <div className="rounded-2xl border border-border bg-card overflow-hidden">
+          <div className="px-4 py-3 bg-muted/50 border-b border-border">
+            <h3 className="font-semibold text-card-foreground">
               Nutrition
             </h3>
           </div>
           <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
             {scan.calories != null && (
               <div>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-2xl font-bold text-card-foreground">
                   {Math.round(scan.calories)}
                 </p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-muted-foreground">
                   Calories
                 </p>
               </div>
             )}
             {scan.protein_g != null && (
               <div>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-2xl font-bold text-card-foreground">
                   {scan.protein_g.toFixed(1)}g
                 </p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-muted-foreground">
                   Protein
                 </p>
               </div>
             )}
             {scan.fat_g != null && (
               <div>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-2xl font-bold text-card-foreground">
                   {scan.fat_g.toFixed(1)}g
                 </p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-muted-foreground">
                   Fat
                 </p>
               </div>
             )}
             {scan.carbs_g != null && (
               <div>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-2xl font-bold text-card-foreground">
                   {scan.carbs_g.toFixed(1)}g
                 </p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-muted-foreground">
                   Carbs
                 </p>
                 {scan.sugar_g != null && scan.sugar_g > 0 && (
-                  <p className="text-xs text-stone-400 dark:text-stone-500">
+                  <p className="text-xs text-muted-foreground">
                     sugar {scan.sugar_g.toFixed(1)}g
                   </p>
                 )}
@@ -214,10 +214,10 @@ export default function ResultPage() {
             )}
             {scan.sodium_mg != null && (
               <div>
-                <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-lg font-bold text-card-foreground">
                   {Math.round(scan.sodium_mg)}mg
                 </p>
-                <p className="text-xs text-stone-500 dark:text-stone-400">
+                <p className="text-xs text-muted-foreground">
                   Sodium
                 </p>
               </div>
@@ -228,7 +228,7 @@ export default function ResultPage() {
             scan.fat_g == null &&
             scan.carbs_g == null &&
             scan.sodium_mg == null && (
-              <p className="p-4 text-sm text-stone-500 dark:text-stone-400">
+              <p className="p-4 text-sm text-muted-foreground">
                 No nutrition data available.
               </p>
             )}

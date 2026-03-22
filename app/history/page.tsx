@@ -87,15 +87,15 @@ export default function HistoryPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium"
           >
             ← Back
           </Link>
-          <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <h1 className="text-lg font-semibold text-foreground">
             Scan History
           </h1>
           <div className="flex items-center gap-2">
@@ -114,15 +114,15 @@ export default function HistoryPage() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Spinner />
-            <p className="text-sm text-stone-500 dark:text-stone-400">
+            <p className="text-sm text-muted-foreground">
               Loading your history…
             </p>
           </div>
         ) : scans.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-20 px-4">
-            <div className="w-16 h-16 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center mb-4">
+            <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <svg
-                className="w-8 h-8 text-stone-400 dark:text-stone-500"
+                className="w-8 h-8 text-muted-foreground"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -135,7 +135,7 @@ export default function HistoryPage() {
                 />
               </svg>
             </div>
-            <p className="text-stone-600 dark:text-stone-400 text-center mb-6 max-w-sm">
+            <p className="text-muted-foreground text-center mb-6 max-w-sm">
               No scans yet. Take a photo of food to see nutrition facts and build
               your history.
             </p>
@@ -148,32 +148,32 @@ export default function HistoryPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 flex items-center justify-between gap-4">
+            <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4">
               <div>
-                <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
+                <p className="text-sm font-medium text-muted-foreground">
                   Avg daily calories (last 7 days)
                 </p>
-                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                <p className="text-2xl font-bold text-card-foreground mt-0.5">
                   {avgDailyCal != null ? `${avgDailyCal} kcal` : "—"}
                 </p>
               </div>
-              <p className="text-sm text-stone-500 dark:text-stone-400">
+              <p className="text-sm text-muted-foreground">
                 {scans.length} scan{scans.length !== 1 ? "s" : ""}
               </p>
             </div>
             {scans.map((scan) => (
               <div
                 key={scan.id}
-                className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 flex items-center justify-between gap-4"
+                className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4"
               >
                 <Link
                   href={`/result/${scan.id}`}
                   className="flex-1 min-w-0"
                 >
-                  <h2 className="font-semibold text-stone-900 dark:text-stone-100 capitalize truncate">
+                  <h2 className="font-semibold text-card-foreground capitalize truncate">
                     {scan.food_label}
                   </h2>
-                  <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-0.5">
                     {formatDate(scan.created_at)}
                     {scan.calories != null &&
                       ` · ${Math.round(scan.calories)} kcal`}
@@ -192,7 +192,7 @@ export default function HistoryPage() {
                         </span>
                       ))}
                       {scan.flags.length > 4 && (
-                        <span className="text-xs text-stone-400">
+                        <span className="text-xs text-muted-foreground">
                           +{scan.flags.length - 4}
                         </span>
                       )}
@@ -207,7 +207,7 @@ export default function HistoryPage() {
                   }}
                   disabled={deletingId === scan.id}
                   aria-label={`Delete ${scan.food_label}`}
-                  className="flex-shrink-0 p-2 rounded-lg text-stone-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30 transition-colors disabled:opacity-50"
+                  className="flex-shrink-0 p-2 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors disabled:opacity-50"
                 >
                   <svg
                     className="w-5 h-5"
