@@ -4,6 +4,8 @@ import { useState, Suspense } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Spinner } from "@/components/spinner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 function LoginForm() {
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -50,15 +52,16 @@ function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex flex-col">
-      <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm">
-        <div className="max-w-md mx-auto px-4 py-4">
+    <div className="min-h-screen bg-background flex flex-col">
+      <header className="border-b border-border bg-background/80 backdrop-blur-sm">
+        <div className="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
-            className="text-stone-600 dark:text-stone-400 hover:text-stone-900 dark:hover:text-stone-100 text-sm font-medium"
+            className="text-muted-foreground hover:text-foreground text-sm font-medium"
           >
             ← Back
           </Link>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -173,11 +176,16 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin" />
-      </div>
-    }>
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4">
+          <Spinner />
+          <p className="text-sm text-stone-500 dark:text-stone-400">
+            Loading…
+          </p>
+        </div>
+      }
+    >
       <LoginForm />
     </Suspense>
   );

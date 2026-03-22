@@ -2,6 +2,8 @@
 
 import { useState, useRef } from "react";
 import Link from "next/link";
+import { Spinner } from "@/components/spinner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type ScanResult = {
   label: string;
@@ -111,7 +113,7 @@ export default function ScanPage() {
     state.status === "success" && state.result.confidence < 0.6;
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen bg-background">
       <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
@@ -123,12 +125,15 @@ export default function ScanPage() {
           <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
             NutriScan
           </h1>
-          <Link
-            href="/history"
-            className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
-          >
-            History
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/history"
+              className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              History
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
@@ -151,11 +156,8 @@ export default function ScanPage() {
             className="w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
           >
             {state.status === "loading" ? (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div
-                  className="w-12 h-12 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"
-                  aria-hidden
-                />
+              <div className="flex flex-col items-center gap-4 py-8">
+                <Spinner className="w-12 h-12" />
                 <p className="text-stone-600 dark:text-stone-400 font-medium">
                   Analyzing…
                 </p>

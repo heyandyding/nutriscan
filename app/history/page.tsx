@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
+import { Spinner } from "@/components/spinner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Scan = {
   id: string;
@@ -54,6 +56,21 @@ export default function HistoryPage() {
     setDeletingId(null);
   }
 
+  function getAvgDailyCaloriesLast7Days(): number | null {
+    const now = new Date();
+    const sevenDaysAgo = new Date(now);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const recent = scans.filter((s) => new Date(s.created_at) >= sevenDaysAgo);
+    const total = recent.reduce(
+      (sum, s) => sum + (s.calories ?? 0),
+      0
+    );
+    if (recent.length === 0) return null;
+    return Math.round(total / 7);
+  }
+
+  const avgDailyCal = getAvgDailyCaloriesLast7Days();
+
   function formatDate(iso: string) {
     const d = new Date(iso);
     const now = new Date();
@@ -69,7 +86,7 @@ export default function HistoryPage() {
   }
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen bg-background">
       <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
@@ -81,40 +98,69 @@ export default function HistoryPage() {
           <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
             Scan History
           </h1>
-          <Link
-            href="/scan"
-            className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
-          >
-            Scan
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/scan"
+              className="text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline"
+            >
+              Scan
+            </Link>
+            <ThemeToggle />
+          </div>
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6">
+      <main className="max-w-lg mx-auto px-4 py-6 min-h-[50vh]">
         {loading ? (
-          <div className="flex justify-center py-12">
-            <div
-              className="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"
-              aria-hidden
-            />
+          <div className="flex flex-col items-center justify-center py-20 gap-4">
+            <Spinner />
+            <p className="text-sm text-stone-500 dark:text-stone-400">
+              Loading your history…
+            </p>
           </div>
         ) : scans.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-stone-600 dark:text-stone-400 mb-4">
-              No scans yet. Start by scanning some food!
+          <div className="flex flex-col items-center justify-center py-20 px-4">
+            <div className="w-16 h-16 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center mb-4">
+              <svg
+                className="w-8 h-8 text-stone-400 dark:text-stone-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={1.5}
+                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                />
+              </svg>
+            </div>
+            <p className="text-stone-600 dark:text-stone-400 text-center mb-6 max-w-sm">
+              No scans yet. Take a photo of food to see nutrition facts and build
+              your history.
             </p>
             <Link
               href="/scan"
-              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2.5 transition-colors"
+              className="inline-flex items-center justify-center rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-3 transition-colors"
             >
               Scan food
             </Link>
           </div>
         ) : (
-          <div className="space-y-3">
-            <p className="text-sm text-stone-500 dark:text-stone-400 mb-4">
-              {scans.length} scan{scans.length !== 1 ? "s" : ""}
-            </p>
+          <div className="space-y-4">
+            <div className="rounded-2xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 flex items-center justify-between gap-4">
+              <div>
+                <p className="text-sm font-medium text-stone-500 dark:text-stone-400">
+                  Avg daily calories (last 7 days)
+                </p>
+                <p className="text-2xl font-bold text-stone-900 dark:text-stone-100 mt-0.5">
+                  {avgDailyCal != null ? `${avgDailyCal} kcal` : "—"}
+                </p>
+              </div>
+              <p className="text-sm text-stone-500 dark:text-stone-400">
+                {scans.length} scan{scans.length !== 1 ? "s" : ""}
+              </p>
+            </div>
             {scans.map((scan) => (
               <div
                 key={scan.id}

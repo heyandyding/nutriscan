@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import { Spinner } from "@/components/spinner";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 type Scan = {
   id: string;
@@ -63,29 +65,42 @@ export default function ResultPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center">
-        <div
-          className="w-10 h-10 rounded-full border-2 border-emerald-500 border-t-transparent animate-spin"
-          aria-hidden
-        />
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+        <Spinner />
+        <p className="text-sm text-stone-500 dark:text-stone-400">
+          Loading scan…
+        </p>
       </div>
     );
   }
 
   if (error || !scan) {
     return (
-      <div className="min-h-screen bg-stone-50 dark:bg-stone-950 flex items-center justify-center p-4">
-        <div className="text-center">
-          <p className="text-stone-600 dark:text-stone-400 mb-4">
-            {error ?? "Scan not found"}
-          </p>
-          <Link
-            href="/history"
-            className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+      <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
+        <div className="w-16 h-16 rounded-full bg-stone-200 dark:bg-stone-800 flex items-center justify-center mb-4">
+          <svg
+            className="w-8 h-8 text-stone-400 dark:text-stone-500"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
           >
-            ← Back to history
-          </Link>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={1.5}
+              d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
         </div>
+        <p className="text-stone-600 dark:text-stone-400 text-center mb-6">
+          {error ?? "Scan not found"}
+        </p>
+        <Link
+          href="/history"
+          className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+        >
+          ← Back to history
+        </Link>
       </div>
     );
   }
@@ -98,7 +113,7 @@ export default function ResultPage() {
   });
 
   return (
-    <div className="min-h-screen bg-stone-50 dark:bg-stone-950">
+    <div className="min-h-screen bg-background">
       <header className="border-b border-stone-200 dark:border-stone-800 bg-white/80 dark:bg-stone-900/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
           <Link
@@ -107,10 +122,10 @@ export default function ResultPage() {
           >
             ← History
           </Link>
-          <h1 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <h1 className="text-lg font-semibold text-foreground">
             Scan result
           </h1>
-          <div className="w-12" />
+          <ThemeToggle />
         </div>
       </header>
 
