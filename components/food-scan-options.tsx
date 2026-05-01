@@ -14,8 +14,8 @@ export function FoodScanOptions() {
           Current Food Scanning Options
         </h2>
         <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
-          The model is trained on these 25 foods—well-lit, centered photos work
-          best.
+          We currently only work on these 25 foods. Well-lit, higher resolution
+          photos work best.
         </p>
       </div>
       <div className="space-y-4">
