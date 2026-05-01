@@ -258,7 +258,11 @@ export async function POST(request: Request) {
 
     const colabResponse = await fetch(`${COLAB_INFERENCE_URL}/predict`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        // Free ngrok URLs may return an interstitial HTML page unless this header is set.
+        "ngrok-skip-browser-warning": "true",
+      },
       body: JSON.stringify({ image: body.image }),
       signal: AbortSignal.timeout(60_000),
     });
