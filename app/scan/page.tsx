@@ -312,16 +312,14 @@ export default function ScanPage() {
                 </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Result */}
-        {state.status === "success" && (
-          <div className="flex flex-col gap-4">
+            {/* Result — directly under upload, constrained to this column */}
+            {state.status === "success" && (
+              <div className="flex flex-col gap-4 w-full min-w-0">
             {/* Preview + label */}
             <div className="rounded-2xl overflow-hidden bg-card border border-border">
               {state.previewUrl && (
-                <div className="aspect-video bg-muted relative">
+                <div className="aspect-[4/3] max-h-52 sm:max-h-64 md:aspect-video md:max-h-none bg-muted relative">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={state.previewUrl}
@@ -440,7 +438,7 @@ export default function ScanPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="p-4 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                  <div className="p-4 grid grid-cols-2 gap-3">
                     <div>
                       <p className="text-2xl font-bold text-card-foreground">
                         {Math.round(n.calories * mult)}
@@ -612,8 +610,10 @@ export default function ScanPage() {
             >
               Scan another
             </button>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </main>
     </div>
   );
