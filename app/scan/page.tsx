@@ -6,6 +6,7 @@ import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
+import { FoodScanOptions } from "@/components/food-scan-options";
 
 type ScanResult = {
   label: string;
@@ -158,6 +159,8 @@ export default function ScanPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-8 flex flex-col gap-6">
+        <FoodScanOptions />
+
         {/* Upload area */}
         <section className="rounded-2xl border-2 border-dashed border-input bg-card p-8 text-center transition-colors hover:border-primary/50">
           <input
