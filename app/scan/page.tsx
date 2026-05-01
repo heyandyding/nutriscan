@@ -1,14 +1,22 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TodaysBalanceCard } from "@/components/todays-balance-card";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
 import { getMealQualityScore } from "@/lib/meal-quality-score";
 import { FoodScanOptions } from "@/components/food-scan-options";
 import { EditScanResult } from "@/components/edit-scan-result";
+import {
+  EMPTY_DAY_TOTALS,
+  localDayStartISO,
+  sumScanMacroRows,
+  type DayMacroTotals,
+} from "@/lib/today-balance";
 
 type ScanResult = {
   id?: string | null;
@@ -68,13 +76,51 @@ const TIER_BADGE = {
 } as const;
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
-const MIN_MULTIPLIER = 0.5;
-const MAX_MULTIPLIER = 5;
 
 export default function ScanPage() {
   const [state, setState] = useState<ScanState>({ status: "idle" });
   const [servingMultiplier, setServingMultiplier] = useState(1);
+  const [todayTotals, setTodayTotals] =
+    useState<DayMacroTotals>(EMPTY_DAY_TOTALS);
+  const [todayLoading, setTodayLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const refreshTodayTotals = useCallback(async () => {
+    const supabase = createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) {
+      setTodayTotals(EMPTY_DAY_TOTALS);
+      setTodayLoading(false);
+      return;
+    }
+    setTodayLoading(true);
+    const { data, error } = await supabase
+      .from("scans")
+      .select("calories, protein_g, fat_g, carbs_g, sodium_mg")
+      .eq("user_id", user.id)
+      .gte("created_at", localDayStartISO());
+    setTodayLoading(false);
+    if (error || !data) {
+      setTodayTotals(EMPTY_DAY_TOTALS);
+      return;
+    }
+    setTodayTotals(sumScanMacroRows(data));
+  }, []);
+
+  useEffect(() => {
+    void refreshTodayTotals();
+  }, [refreshTodayTotals]);
+
+  const savedScanId =
+    state.status === "success" && state.result.id ? state.result.id : null;
+
+  useEffect(() => {
+    if (savedScanId) {
+      void refreshTodayTotals();
+    }
+  }, [savedScanId, refreshTodayTotals]);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -139,7 +185,7 @@ export default function ScanPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
             className="text-muted-foreground hover:text-foreground text-sm font-medium"
@@ -161,103 +207,113 @@ export default function ScanPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-8 flex flex-col gap-6">
-        <FoodScanOptions />
+      <main className="max-w-5xl mx-auto px-4 py-8 flex flex-col gap-6">
+        <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:items-start">
+          <div className="flex flex-col gap-6 min-w-0">
+            <TodaysBalanceCard
+              totals={todayTotals}
+              loading={todayLoading}
+            />
+            <FoodScanOptions />
+          </div>
 
-        {/* Upload area */}
-        <section className="rounded-2xl border-2 border-dashed border-input bg-card p-8 text-center transition-colors hover:border-primary/50">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={handleFileChange}
-            className="hidden"
-            aria-label="Upload or capture food photo"
-          />
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={state.status === "loading"}
-            className="w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {state.status === "loading" ? (
-              <div className="flex flex-col items-center gap-4 py-8">
-                <Spinner className="w-12 h-12" />
-                <p className="text-muted-foreground font-medium">
-                  Analyzing…
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Identifying food and fetching nutrition
-                </p>
-              </div>
-            ) : (
-              <div className="flex flex-col items-center gap-3 py-4">
-                <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
-                  <svg
-                    className="w-7 h-7 text-emerald-600 dark:text-emerald-400"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h7"
-                    />
-                  </svg>
-                </div>
-                <p className="text-foreground font-semibold">
-                  Upload or take a photo
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Point your camera at a single food item
-                </p>
-              </div>
-            )}
-          </button>
-        </section>
-
-        {/* Error state */}
-        {state.status === "error" && (
-          <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4 flex items-start gap-3">
-            <svg
-              className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+          <div className="flex flex-col gap-6 min-w-0">
+            {/* Upload area */}
+            <section className="rounded-2xl border-2 border-dashed border-input bg-card p-8 text-center transition-colors hover:border-primary/50">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                onChange={handleFileChange}
+                className="hidden"
+                aria-label="Upload or capture food photo"
               />
-            </svg>
-            <div className="flex-1 min-w-0">
-              <p className="font-medium text-red-800 dark:text-red-200">
-                Scan failed
-              </p>
-              <p className="text-sm text-red-700 dark:text-red-300">
-                {state.message}
-              </p>
               <button
                 type="button"
-                onClick={handleReset}
-                className="mt-2 text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={state.status === "loading"}
+                className="w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 rounded-xl disabled:opacity-60 disabled:cursor-not-allowed"
               >
-                Try again
+                {state.status === "loading" ? (
+                  <div className="flex flex-col items-center gap-4 py-8">
+                    <Spinner className="w-12 h-12" />
+                    <p className="text-muted-foreground font-medium">
+                      Analyzing…
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Identifying food and fetching nutrition
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-3 py-4">
+                    <div className="w-14 h-14 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                      <svg
+                        className="w-7 h-7 text-emerald-600 dark:text-emerald-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h7"
+                        />
+                      </svg>
+                    </div>
+                    <p className="text-foreground font-semibold">
+                      Upload or take a photo
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      Point your camera at a single food item
+                    </p>
+                  </div>
+                )}
               </button>
-            </div>
+            </section>
+
+            {/* Error state */}
+            {state.status === "error" && (
+              <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-red-50 dark:bg-red-950/30 p-4 flex items-start gap-3">
+                <svg
+                  className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-red-800 dark:text-red-200">
+                    Scan failed
+                  </p>
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    {state.message}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="mt-2 text-sm font-medium text-red-600 dark:text-red-400 hover:underline"
+                  >
+                    Try again
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
-        )}
+        </div>
 
         {/* Result */}
         {state.status === "success" && (
@@ -544,6 +600,7 @@ export default function ScanPage() {
                       },
                     };
                   });
+                  void refreshTodayTotals();
                 }}
               />
             )}

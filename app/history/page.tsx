@@ -1,17 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { TodaysBalanceCard } from "@/components/todays-balance-card";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
+import {
+  sumMacrosForLocalTodayFromScans,
+  type MacroScanRow,
+} from "@/lib/today-balance";
 
-type Scan = {
+type Scan = MacroScanRow & {
   id: string;
   food_label: string;
-  created_at: string;
-  calories: number | null;
   confidence: number | null;
   flags: Array<{ type: string; severity: string; message: string }> | null;
 };
@@ -44,7 +47,9 @@ export default function HistoryPage() {
 
       const { data, error } = await supabase
         .from("scans")
-        .select("id, food_label, created_at, calories, confidence, flags")
+        .select(
+          "id, food_label, created_at, calories, protein_g, fat_g, carbs_g, sodium_mg, confidence, flags"
+        )
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -79,6 +84,11 @@ export default function HistoryPage() {
 
   const avgDailyCal = getAvgDailyCaloriesLast7Days();
 
+  const todayTotals = useMemo(
+    () => sumMacrosForLocalTodayFromScans(scans),
+    [scans]
+  );
+
   function formatDate(iso: string) {
     const d = new Date(iso);
     const now = new Date();
@@ -96,7 +106,7 @@ export default function HistoryPage() {
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="max-w-lg mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link
             href="/"
             className="text-muted-foreground hover:text-foreground text-sm font-medium"
@@ -118,7 +128,7 @@ export default function HistoryPage() {
         </div>
       </header>
 
-      <main className="max-w-lg mx-auto px-4 py-6 min-h-[50vh]">
+      <main className="max-w-5xl mx-auto px-4 py-6 min-h-[50vh]">
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Spinner />
@@ -127,7 +137,9 @@ export default function HistoryPage() {
             </p>
           </div>
         ) : scans.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 px-4">
+          <div className="flex flex-col gap-6 py-6">
+            <TodaysBalanceCard totals={todayTotals} />
+            <div className="flex flex-col items-center justify-center py-12 px-4">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
               <svg
                 className="w-8 h-8 text-muted-foreground"
@@ -153,9 +165,11 @@ export default function HistoryPage() {
             >
               Scan food
             </Link>
+            </div>
           </div>
         ) : (
           <div className="space-y-4">
+            <TodaysBalanceCard totals={todayTotals} />
             <div className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">
