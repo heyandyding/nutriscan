@@ -31,54 +31,54 @@ export function getHealthInsight(
 
   if (na >= 700) {
     lines.push(
-      "This serving looks fairly salty on the label, so it may taste more seasoned than plainer foods."
+      "This serving is pretty salty, so it may taste more seasoned than plainer foods."
     );
   }
 
   if (sugar >= 12) {
     lines.push(
-      "Sugar plays a noticeable role here, so the flavor may lean sweet."
+      "There is a noticeable amount of sugar present. Flavour is likely a little sweet."
     );
   }
 
   if (fib != null && fib >= 5) {
     lines.push(
-      "Fiber is a nice bump for this portion compared with many snacky picks."
+      "Fiber is in healthy amounts for this portion compared to many junk foods that lack fiber!"
     );
   } else if (fib != null && fib >= 3 && fib < 5) {
-    lines.push("There’s a bit of fiber here—not huge, but not zero either.");
+    lines.push("There's some fiber here, but not in substantial amounts.");
   }
 
   if (lines.length < 2 && p >= 18 && cal < 800) {
     lines.push(
-      "Protein is doing meaningful work in this serving, which can feel satisfying."
+      "If you're hitting the gym, this is a good target to hit. Protein is truly working its way here."
     );
   }
 
   if (lines.length < 2 && cal >= 700) {
     lines.push(
-      "Calories are on the hearty side for one plate—handy when you want something filling."
+      "Calories are on the larger side, maybe you're on the bulk?"
     );
   } else if (lines.length < 2 && cal > 0 && cal <= 220) {
     lines.push(
-      "This is a lighter calorie portion; pairing it with sides is easy if you want more volume."
+      "This has a light amount of calories, good for cutting. If you wish to bulk, you may want some more volume."
     );
   }
 
   if (lines.length < 2 && fat >= 28) {
     lines.push(
-      "Fat is fairly high for this amount of food, so expect a richer texture."
+      "Fat is fairly high for this amount of food."
     );
   }
 
   if (lines.length < 2 && carb >= 45 && p < 12) {
     lines.push(
-      "Carbs lead the numbers here more than protein—common for bowls, breads, and noodles."
+      "Carbs are present in greater amounts than proteins."
     );
   }
 
   if (lines.length === 0) {
-    return "For this serving, nothing jumps out as extreme—just a snapshot to pair with how you like to eat.";
+    return "For this serving of food, nothing is out of the ordinary.";
   }
 
   return lines.slice(0, 2).join(" ");
