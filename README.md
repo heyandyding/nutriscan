@@ -5,7 +5,7 @@ colorFrom: green
 colorTo: blue
 sdk: docker
 app_port: 7860
-short_description: Scan food photos for nutrition facts, history, and diet insights.
+short_description: Food photos to nutrition facts and scan history.
 tags:
   - nutrition
   - food
