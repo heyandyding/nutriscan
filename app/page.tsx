@@ -38,9 +38,7 @@ export default function Home() {
               NutriScan
             </h1>
             <p className="mt-6 text-xl sm:text-2xl text-muted-foreground leading-relaxed">
-              Welcome to version 1 of NutriScan! This is just a test pilot for a capstone project thus far. Point your camera at any of 25 food choices to get instant nutrition facts,
-              including calories, protein, carbs, fat, sodium and fiber. Track what you eat over time and make
-              smarter diet choices!
+              Welcome to the first version launch of NutriScan! Point your camera at one of our 25 food choices listed to get instant nutrition facts and track what you eat over time to make smarter choices!
             </p>
             <div className="mt-12">
               <Button asChild size="lg" className="text-base px-8 py-6 h-auto">
