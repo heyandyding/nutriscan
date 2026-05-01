@@ -1,3 +1,17 @@
+---
+title: NutriScan
+emoji: 🥗
+colorFrom: green
+colorTo: blue
+sdk: docker
+app_port: 7860
+short_description: Scan food photos for nutrition facts, history, and diet insights.
+tags:
+  - nutrition
+  - food
+  - vision
+---
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started
