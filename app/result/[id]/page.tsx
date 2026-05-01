@@ -8,6 +8,7 @@ import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
+import { getMealQualityScore } from "@/lib/meal-quality-score";
 
 type Scan = {
   id: string;
@@ -140,6 +141,17 @@ export default function ResultPage() {
         })
       : null;
 
+  const mealQualityScore =
+    scan.calories != null
+      ? getMealQualityScore({
+          calories: scan.calories,
+          protein_g: scan.protein_g ?? 0,
+          fat_g: scan.fat_g ?? 0,
+          sugar_g: scan.sugar_g ?? 0,
+          sodium_mg: scan.sodium_mg ?? 0,
+        })
+      : null;
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
@@ -266,6 +278,16 @@ export default function ResultPage() {
               </div>
             )}
           </div>
+          {mealQualityScore != null && (
+            <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/25">
+              <span className="text-sm font-medium text-foreground">
+                Meal quality score
+              </span>
+              <span className="text-2xl font-bold tabular-nums text-foreground">
+                {mealQualityScore}
+              </span>
+            </div>
+          )}
           {scan.calories == null &&
             scan.protein_g == null &&
             scan.fat_g == null &&

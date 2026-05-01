@@ -6,6 +6,7 @@ import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
+import { getMealQualityScore } from "@/lib/meal-quality-score";
 import { FoodScanOptions } from "@/components/food-scan-options";
 
 type ScanResult = {
@@ -332,6 +333,15 @@ export default function ScanPage() {
                 sodium_mg: n.sodium_mg * mult,
                 fiber_g: n.fiber_g * mult,
               });
+              const mealQualityScore = getMealQualityScore({
+                calories: n.calories * mult,
+                protein_g: n.protein_g * mult,
+                fat_g: n.fat_g * mult,
+                sugar_g: n.sugar_g * mult,
+                sodium_mg: n.sodium_mg * mult,
+                saturated_fat_g: n.saturated_fat_g * mult,
+                fiber_g: n.fiber_g * mult,
+              });
               return (
                 <>
                 <div className="rounded-2xl border border-border bg-card overflow-hidden">
@@ -420,6 +430,16 @@ export default function ScanPage() {
                       <p className="text-xs text-muted-foreground">Fiber</p>
                     </div>
                   </div>
+                  {mealQualityScore != null && (
+                    <div className="px-4 py-3 border-t border-border flex items-center justify-between bg-muted/25">
+                      <span className="text-sm font-medium text-foreground">
+                        Meal quality score
+                      </span>
+                      <span className="text-2xl font-bold tabular-nums text-foreground">
+                        {mealQualityScore}
+                      </span>
+                    </div>
+                  )}
                 </div>
                 {healthInsight && (
                   <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
