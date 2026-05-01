@@ -1,14 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
 import { getMealQualityScore } from "@/lib/meal-quality-score";
+import { EditScanResult } from "@/components/edit-scan-result";
 
 type Scan = {
   id: string;
@@ -21,6 +22,7 @@ type Scan = {
   carbs_g: number | null;
   sodium_mg: number | null;
   sugar_g: number | null;
+  portion_multiplier: number | null;
   flags: Array<{ type: string; severity: string; message: string }> | null;
 };
 
@@ -37,9 +39,12 @@ const TIER_BADGE: Record<string, string> = {
   low: "bg-amber-500/10 text-amber-900 dark:text-amber-100 border-amber-500/20",
 };
 
-export default function ResultPage() {
+function ResultPageInner() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const id = params.id as string;
+  const startEdit = searchParams.get("edit") === "1";
+
   const [scan, setScan] = useState<Scan | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -59,7 +64,7 @@ export default function ResultPage() {
       const { data, error: fetchError } = await supabase
         .from("scans")
         .select(
-          "id, food_label, created_at, confidence, calories, protein_g, fat_g, carbs_g, sodium_mg, sugar_g, flags"
+          "id, food_label, created_at, confidence, calories, protein_g, fat_g, carbs_g, sodium_mg, sugar_g, portion_multiplier, flags"
         )
         .eq("id", id)
         .eq("user_id", user.id)
@@ -124,6 +129,8 @@ export default function ResultPage() {
     day: "numeric",
   });
 
+  const portion = scan.portion_multiplier ?? 1;
+
   const confidencePres = getScanConfidencePresentation(
     scan.food_label,
     scan.confidence ?? 0
@@ -151,6 +158,15 @@ export default function ResultPage() {
           sodium_mg: scan.sodium_mg ?? 0,
         })
       : null;
+
+  const editDefaults = {
+    foodLabel: scan.food_label,
+    portion,
+    calories: scan.calories ?? 0,
+    proteinG: scan.protein_g ?? 0,
+    carbsG: scan.carbs_g ?? 0,
+    fatG: scan.fat_g ?? 0,
+  };
 
   return (
     <div className="min-h-screen bg-background">
@@ -192,6 +208,38 @@ export default function ResultPage() {
               {confidencePres.explanation}
             </p>
           </div>
+
+          <EditScanResult
+            scanId={scan.id}
+            startOpen={startEdit}
+            defaults={editDefaults}
+            onSaved={(v) => {
+              const prevCal = scan.calories ?? 0;
+              const ratio =
+                prevCal > 0 && v.calories > 0 ? v.calories / prevCal : 1;
+              setScan((s) =>
+                s
+                  ? {
+                      ...s,
+                      food_label: v.foodLabel,
+                      portion_multiplier: v.portion,
+                      calories: v.calories,
+                      protein_g: v.proteinG,
+                      fat_g: v.fatG,
+                      carbs_g: v.carbsG,
+                      sugar_g:
+                        s.sugar_g != null
+                          ? Math.round(s.sugar_g * ratio * 100) / 100
+                          : null,
+                      sodium_mg:
+                        s.sodium_mg != null
+                          ? Math.round(s.sodium_mg * ratio * 100) / 100
+                          : null,
+                    }
+                  : null
+              );
+            }}
+          />
         </div>
 
         {scan.flags && scan.flags.length > 0 && (
@@ -311,5 +359,22 @@ export default function ResultPage() {
         )}
       </main>
     </div>
+  );
+}
+
+export default function ResultPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex flex-col items-center justify-center gap-4 p-4">
+          <Spinner />
+          <p className="text-sm text-muted-foreground">
+            Loading scan…
+          </p>
+        </div>
+      }
+    >
+      <ResultPageInner />
+    </Suspense>
   );
 }

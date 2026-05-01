@@ -8,8 +8,10 @@ import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 import { getHealthInsight } from "@/lib/health-insight";
 import { getMealQualityScore } from "@/lib/meal-quality-score";
 import { FoodScanOptions } from "@/components/food-scan-options";
+import { EditScanResult } from "@/components/edit-scan-result";
 
 type ScanResult = {
+  id?: string | null;
   label: string;
   confidence: number;
   top5: unknown[];
@@ -459,6 +461,91 @@ export default function ScanPage() {
               <p className="text-sm text-muted-foreground py-2">
                 Nutrition data unavailable for this food.
               </p>
+            )}
+
+            {state.result.id && (
+              <EditScanResult
+                scanId={state.result.id}
+                className="rounded-2xl border border-border bg-card p-4"
+                defaults={
+                  state.result.nutrition
+                    ? {
+                        foodLabel: state.result.label,
+                        portion: servingMultiplier,
+                        calories:
+                          state.result.nutrition.calories * servingMultiplier,
+                        proteinG:
+                          state.result.nutrition.protein_g * servingMultiplier,
+                        carbsG:
+                          state.result.nutrition.carbs_g * servingMultiplier,
+                        fatG:
+                          state.result.nutrition.fat_g * servingMultiplier,
+                      }
+                    : {
+                        foodLabel: state.result.label,
+                        portion: 1,
+                        calories: 0,
+                        proteinG: 0,
+                        carbsG: 0,
+                        fatG: 0,
+                      }
+                }
+                onSaved={(v) => {
+                  const prevMult = servingMultiplier;
+                  setServingMultiplier(v.portion);
+                  setState((prev) => {
+                    if (prev.status !== "success") return prev;
+                    const p = v.portion;
+                    const n0 = prev.result.nutrition;
+                    if (!n0) {
+                      const nextNut = {
+                        calories: v.calories / p,
+                        protein_g: v.proteinG / p,
+                        fat_g: v.fatG / p,
+                        carbs_g: v.carbsG / p,
+                        saturated_fat_g: 0,
+                        sugar_g: 0,
+                        sodium_mg: 0,
+                        fiber_g: 0,
+                        serving_grams: 100,
+                        serving_label: "serving",
+                      };
+                      return {
+                        status: "success",
+                        previewUrl: prev.previewUrl,
+                        result: {
+                          ...prev.result,
+                          label: v.foodLabel,
+                          nutrition: nextNut,
+                        },
+                      };
+                    }
+                    const calBase = n0.calories;
+                    const perField = (x: number) =>
+                      calBase > 0 ? (x * v.calories) / (calBase * p) : 0;
+                    const nextNut = {
+                      ...n0,
+                      calories: v.calories / p,
+                      protein_g: v.proteinG / p,
+                      fat_g: v.fatG / p,
+                      carbs_g: v.carbsG / p,
+                      sugar_g: perField(n0.sugar_g * prevMult),
+                      sodium_mg: perField(n0.sodium_mg * prevMult),
+                      fiber_g: perField(n0.fiber_g * prevMult),
+                      saturated_fat_g: perField(n0.saturated_fat_g * prevMult),
+                    };
+                    return {
+                      status: "success",
+                      previewUrl: prev.previewUrl,
+                      result: {
+                        ...prev.result,
+                        label: v.foodLabel,
+                        nutrition: nextNut,
+                      },
+                    };
+                  });
+                }}
+              />
             )}
 
             <button

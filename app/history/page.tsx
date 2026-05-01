@@ -219,6 +219,12 @@ export default function HistoryPage() {
                     </div>
                   )}
                 </Link>
+                <Link
+                  href={`/result/${scan.id}?edit=1`}
+                  className="flex-shrink-0 text-sm font-medium text-emerald-600 dark:text-emerald-400 hover:underline px-1"
+                >
+                  Edit
+                </Link>
                 <button
                   type="button"
                   onClick={(e) => {
