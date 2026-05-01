@@ -85,7 +85,7 @@ export function getTodayBalancePatternSentence(t: DayMacroTotals): string {
   const na = t.sodium_mg;
 
   if (cal < 1 && p < 1 && c < 1 && f < 1) {
-    return "Log a scan today to see how your day is shaping up.";
+    return "Log a scan to start tracking your day!";
   }
 
   const hasSodiumSignal = na >= 1;
@@ -128,10 +128,10 @@ export function getTodayBalancePatternSentence(t: DayMacroTotals): string {
     return `${s}.`;
   }
   if (cal >= 1800) {
-    return "Calories are stacking up—balance the rest of the day if you’re aiming lighter.";
+    return "Calories are piling up. Balance the rest of the day if you want to cut weight.";
   }
   if (cal >= 400 && cal < 900) {
-    return "You’re off to a moderate start—room for more fuel if you’re hungry.";
+    return "You have made good progress to get necessary fuel for the day. Keep going.";
   }
-  return "Your macros look steady so far—keep logging to sharpen the picture.";
+  return "Your macros look OK so far, keep eating and tracking to get better feedback.";
 }
