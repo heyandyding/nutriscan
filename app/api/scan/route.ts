@@ -2,7 +2,15 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-const COLAB_INFERENCE_URL = process.env.COLAB_INFERENCE_URL;
+/** Base URL of the food-classifier API (e.g. Hugging Face Space https://….hf.space). No trailing /predict. */
+function getMlInferenceBaseUrl(): string | undefined {
+  const raw =
+    process.env.ML_INFERENCE_URL?.trim() ||
+    process.env.COLAB_INFERENCE_URL?.trim();
+  if (!raw) return undefined;
+  return raw.replace(/\/+$/, "");
+}
+
 const EDAMAM_APP_ID = process.env.EDAMAM_APP_ID;
 const EDAMAM_APP_KEY = process.env.EDAMAM_APP_KEY;
 
@@ -238,10 +246,12 @@ export async function POST(request: Request) {
       );
     }
 
-    if (!COLAB_INFERENCE_URL) {
+    const inferenceBaseUrl = getMlInferenceBaseUrl();
+    if (!inferenceBaseUrl) {
       return NextResponse.json(
         {
-          error: "COLAB_INFERENCE_URL is not configured. Start the Colab runtime and ngrok before scanning.",
+          error:
+            "ML inference is not configured. Set ML_INFERENCE_URL (recommended) or COLAB_INFERENCE_URL to your Hugging Face Space base URL (e.g. https://your-space.hf.space) in the server environment.",
         },
         { status: 503 }
       );
@@ -256,33 +266,37 @@ export async function POST(request: Request) {
       );
     }
 
-    const colabResponse = await fetch(`${COLAB_INFERENCE_URL}/predict`, {
+    const inferenceResponse = await fetch(`${inferenceBaseUrl}/predict`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        // Free ngrok URLs may return an interstitial HTML page unless this header is set.
+        // Harmless on HF; helps if the base URL is ever an ngrok tunnel.
         "ngrok-skip-browser-warning": "true",
       },
       body: JSON.stringify({ image: body.image }),
       signal: AbortSignal.timeout(60_000),
     });
 
-    if (!colabResponse.ok) {
-      const text = await colabResponse.text();
+    if (!inferenceResponse.ok) {
+      const text = await inferenceResponse.text();
       console.error(
-        `Colab inference error ${colabResponse.status}:`,
+        `ML inference error ${inferenceResponse.status}:`,
         text.slice(0, 500)
       );
       return NextResponse.json(
         {
-          error: "ML inference endpoint failed. Ensure Colab runtime and ngrok are running.",
-          details: colabResponse.status === 502 ? "Endpoint may be down or unreachable" : undefined,
+          error:
+            "Food recognition service failed. If this is the first scan in a while, wait and try again (Hugging Face Spaces can take up to a minute to wake up).",
+          details:
+            inferenceResponse.status === 502
+              ? "Service waking up, overloaded, or unreachable."
+              : undefined,
         },
         { status: 502 }
       );
     }
 
-    const result = await colabResponse.json();
+    const result = await inferenceResponse.json();
 
     if (!result || typeof result.label !== "string") {
       return NextResponse.json(
