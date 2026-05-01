@@ -38,8 +38,8 @@ export default function Home() {
               NutriScan
             </h1>
             <p className="mt-6 text-xl sm:text-2xl text-muted-foreground leading-relaxed">
-              Welcom to version 1 of NutriScan! This is just a test pilot for a capstone project thus far. Point your camera at any of 25 food choices to get instant nutrition facts,
-              including calories,protein, carbs, fat, sodium and fiber. Track what you eat over time and make
+              Welcome to version 1 of NutriScan! This is just a test pilot for a capstone project thus far. Point your camera at any of 25 food choices to get instant nutrition facts,
+              including calories, protein, carbs, fat, sodium and fiber. Track what you eat over time and make
               smarter diet choices!
             </p>
             <div className="mt-12">
