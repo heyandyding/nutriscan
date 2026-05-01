@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
+import { getHealthInsight } from "@/lib/health-insight";
 
 type Scan = {
   id: string;
@@ -126,6 +127,18 @@ export default function ResultPage() {
     scan.food_label,
     scan.confidence ?? 0
   );
+
+  const healthInsight =
+    scan.calories != null
+      ? getHealthInsight({
+          calories: scan.calories,
+          protein_g: scan.protein_g ?? 0,
+          fat_g: scan.fat_g ?? 0,
+          carbs_g: scan.carbs_g ?? 0,
+          sugar_g: scan.sugar_g ?? 0,
+          sodium_mg: scan.sodium_mg ?? 0,
+        })
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -263,6 +276,17 @@ export default function ResultPage() {
               </p>
             )}
         </div>
+
+        {healthInsight && (
+          <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
+            <h3 className="text-sm font-semibold text-card-foreground">
+              Health insight
+            </h3>
+            <p className="text-sm text-muted-foreground leading-relaxed">
+              {healthInsight}
+            </p>
+          </div>
+        )}
       </main>
     </div>
   );

@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { getScanConfidencePresentation } from "@/lib/scan-confidence";
+import { getHealthInsight } from "@/lib/health-insight";
 
 type ScanResult = {
   label: string;
@@ -319,7 +320,17 @@ export default function ScanPage() {
               const idx = SERVING_STEPS.indexOf(mult);
               const canDecrease = idx > 0;
               const canIncrease = idx < SERVING_STEPS.length - 1;
+              const healthInsight = getHealthInsight({
+                calories: n.calories * mult,
+                protein_g: n.protein_g * mult,
+                fat_g: n.fat_g * mult,
+                carbs_g: n.carbs_g * mult,
+                sugar_g: n.sugar_g * mult,
+                sodium_mg: n.sodium_mg * mult,
+                fiber_g: n.fiber_g * mult,
+              });
               return (
+                <>
                 <div className="rounded-2xl border border-border bg-card overflow-hidden">
                   <div className="px-4 py-3 bg-muted/50 border-b border-border">
                     <h3 className="font-semibold text-card-foreground">
@@ -407,6 +418,17 @@ export default function ScanPage() {
                     </div>
                   </div>
                 </div>
+                {healthInsight && (
+                  <div className="rounded-2xl border border-border bg-card p-4 space-y-1.5">
+                    <h3 className="text-sm font-semibold text-card-foreground">
+                      Health insight
+                    </h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">
+                      {healthInsight}
+                    </p>
+                  </div>
+                )}
+                </>
               );
             })()}
 
