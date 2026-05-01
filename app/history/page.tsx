@@ -5,12 +5,14 @@ import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 
 type Scan = {
   id: string;
   food_label: string;
   created_at: string;
   calories: number | null;
+  confidence: number | null;
   flags: Array<{ type: string; severity: string; message: string }> | null;
 };
 
@@ -19,6 +21,12 @@ const FLAG_COLORS: Record<string, string> = {
   orange: "bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/40",
   yellow:
     "bg-yellow-500/15 text-yellow-800 dark:text-yellow-200 border-yellow-500/40",
+};
+
+const TIER_BADGE: Record<string, string> = {
+  high: "bg-emerald-500/12 text-emerald-800 dark:text-emerald-200 border-emerald-500/20",
+  medium: "bg-muted/80 text-muted-foreground border-border",
+  low: "bg-amber-500/10 text-amber-900 dark:text-amber-100 border-amber-500/20",
 };
 
 export default function HistoryPage() {
@@ -36,7 +44,7 @@ export default function HistoryPage() {
 
       const { data, error } = await supabase
         .from("scans")
-        .select("id, food_label, created_at, calories, flags")
+        .select("id, food_label, created_at, calories, confidence, flags")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false });
 
@@ -161,7 +169,12 @@ export default function HistoryPage() {
                 {scans.length} scan{scans.length !== 1 ? "s" : ""}
               </p>
             </div>
-            {scans.map((scan) => (
+            {scans.map((scan) => {
+              const pres = getScanConfidencePresentation(
+                scan.food_label,
+                scan.confidence ?? 0
+              );
+              return (
               <div
                 key={scan.id}
                 className="rounded-2xl border border-border bg-card p-4 flex items-center justify-between gap-4"
@@ -173,10 +186,17 @@ export default function HistoryPage() {
                   <h2 className="font-semibold text-card-foreground capitalize truncate">
                     {scan.food_label}
                   </h2>
-                  <p className="text-sm text-muted-foreground mt-0.5">
-                    {formatDate(scan.created_at)}
-                    {scan.calories != null &&
-                      ` · ${Math.round(scan.calories)} kcal`}
+                  <p className="text-sm text-muted-foreground mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-1">
+                    <span>
+                      {formatDate(scan.created_at)}
+                      {scan.calories != null &&
+                        ` · ${Math.round(scan.calories)} kcal`}
+                    </span>
+                    <span
+                      className={`inline-flex items-center rounded border px-1.5 py-px text-[10px] font-medium ${TIER_BADGE[pres.tier] ?? TIER_BADGE.medium}`}
+                    >
+                      {pres.tierLabel}
+                    </span>
                   </p>
                   {scan.flags && scan.flags.length > 0 && (
                     <div className="flex flex-wrap gap-1.5 mt-2">
@@ -224,7 +244,8 @@ export default function HistoryPage() {
                   </svg>
                 </button>
               </div>
-            ))}
+            );
+            })}
           </div>
         )}
       </main>

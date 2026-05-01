@@ -6,11 +6,13 @@ import { useParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 
 type Scan = {
   id: string;
   food_label: string;
   created_at: string;
+  confidence: number | null;
   calories: number | null;
   protein_g: number | null;
   fat_g: number | null;
@@ -25,6 +27,12 @@ const FLAG_COLORS: Record<string, string> = {
   orange: "bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/40",
   yellow:
     "bg-yellow-500/15 text-yellow-800 dark:text-yellow-200 border-yellow-500/40",
+};
+
+const TIER_BADGE: Record<string, string> = {
+  high: "bg-emerald-500/12 text-emerald-800 dark:text-emerald-200 border-emerald-500/20",
+  medium: "bg-muted/80 text-muted-foreground border-border",
+  low: "bg-amber-500/10 text-amber-900 dark:text-amber-100 border-amber-500/20",
 };
 
 export default function ResultPage() {
@@ -48,7 +56,9 @@ export default function ResultPage() {
 
       const { data, error: fetchError } = await supabase
         .from("scans")
-        .select("id, food_label, created_at, calories, protein_g, fat_g, carbs_g, sodium_mg, sugar_g, flags")
+        .select(
+          "id, food_label, created_at, confidence, calories, protein_g, fat_g, carbs_g, sodium_mg, sugar_g, flags"
+        )
         .eq("id", id)
         .eq("user_id", user.id)
         .single();
@@ -112,6 +122,11 @@ export default function ResultPage() {
     day: "numeric",
   });
 
+  const confidencePres = getScanConfidencePresentation(
+    scan.food_label,
+    scan.confidence ?? 0
+  );
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border bg-background/80 backdrop-blur-sm sticky top-0 z-10">
@@ -130,13 +145,28 @@ export default function ResultPage() {
       </header>
 
       <main className="max-w-lg mx-auto px-4 py-6 space-y-6">
-        <div className="rounded-2xl border border-border bg-card p-4">
+        <div className="rounded-2xl border border-border bg-card p-4 space-y-3">
           <h2 className="text-xl font-bold text-card-foreground capitalize">
             {scan.food_label}
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {date}
-          </p>
+          <p className="text-sm text-muted-foreground">{date}</p>
+          <div className="space-y-1.5 pt-0.5">
+            <div className="flex flex-wrap items-center gap-2">
+              <span
+                className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${TIER_BADGE[confidencePres.tier] ?? TIER_BADGE.medium}`}
+              >
+                {confidencePres.tierLabel} confidence
+              </span>
+              {scan.confidence != null && (
+                <span className="text-xs text-muted-foreground tabular-nums">
+                  Model {Math.round(scan.confidence * 100)}%
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground leading-snug">
+              {confidencePres.explanation}
+            </p>
+          </div>
         </div>
 
         {scan.flags && scan.flags.length > 0 && (

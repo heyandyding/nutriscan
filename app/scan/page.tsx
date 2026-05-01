@@ -4,6 +4,7 @@ import { useState, useRef } from "react";
 import Link from "next/link";
 import { Spinner } from "@/components/spinner";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { getScanConfidencePresentation } from "@/lib/scan-confidence";
 
 type ScanResult = {
   label: string;
@@ -53,6 +54,12 @@ const FLAG_COLORS = {
     "bg-amber-500/15 text-amber-800 dark:text-amber-200 border-amber-500/40",
   yellow:
     "bg-yellow-500/15 text-yellow-800 dark:text-yellow-200 border-yellow-500/40",
+} as const;
+
+const TIER_BADGE = {
+  high: "bg-emerald-500/12 text-emerald-800 dark:text-emerald-200 border-emerald-500/20",
+  medium: "bg-muted/80 text-muted-foreground border-border",
+  low: "bg-amber-500/10 text-amber-900 dark:text-amber-100 border-amber-500/20",
 } as const;
 
 const SERVING_STEPS = [0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5];
@@ -116,8 +123,13 @@ export default function ScanPage() {
     setServingMultiplier(1);
   }
 
-  const isLowConfidence =
-    state.status === "success" && state.result.confidence < 0.6;
+  const confidencePres =
+    state.status === "success"
+      ? getScanConfidencePresentation(
+          state.result.label,
+          state.result.confidence
+        )
+      : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -243,22 +255,6 @@ export default function ScanPage() {
         {/* Result */}
         {state.status === "success" && (
           <div className="flex flex-col gap-4">
-            {/* Low confidence warning */}
-            {isLowConfidence && (
-              <div className="rounded-xl border border-amber-300 dark:border-amber-700/50 bg-amber-50 dark:bg-amber-950/30 p-3 flex items-start gap-2">
-                <span className="text-amber-600 dark:text-amber-400">⚠️</span>
-                <div>
-                  <p className="font-medium text-amber-800 dark:text-amber-200 text-sm">
-                    Low confidence ({Math.round(state.result.confidence * 100)}%)
-                  </p>
-                  <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                    The result may be incorrect. Please confirm or correct the
-                    food name.
-                  </p>
-                </div>
-              </div>
-            )}
-
             {/* Preview + label */}
             <div className="rounded-2xl overflow-hidden bg-card border border-border">
               {state.previewUrl && (
@@ -271,13 +267,27 @@ export default function ScanPage() {
                   />
                 </div>
               )}
-              <div className="p-4">
+              <div className="p-4 space-y-3">
                 <h2 className="text-xl font-bold text-card-foreground capitalize">
                   {state.result.label}
                 </h2>
-                <p className="text-sm text-muted-foreground mt-1">
-                  Confidence: {Math.round(state.result.confidence * 100)}%
-                </p>
+                {confidencePres && (
+                  <div className="space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span
+                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${TIER_BADGE[confidencePres.tier]}`}
+                      >
+                        {confidencePres.tierLabel} confidence
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums">
+                        Model {Math.round(state.result.confidence * 100)}%
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground leading-snug">
+                      {confidencePres.explanation}
+                    </p>
+                  </div>
+                )}
               </div>
             </div>
 
